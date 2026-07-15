@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer Shield -->
+    <path
+        android:fillColor="#006C4C"
+        android:pathData="M54,20L30,30V50C30,64.8 40.24,78.64 54,82.5C67.76,78.64 78,64.8 78,50V30L54,20Z" />
+    <!-- Filter Funnel inside Shield -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,40H64L56,50V62L52,58V50L44,40Z" />
+</vector>
