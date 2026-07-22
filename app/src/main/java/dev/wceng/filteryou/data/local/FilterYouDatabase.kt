@@ -9,7 +9,7 @@ import dev.wceng.filteryou.data.local.dao.RuleDao
 import dev.wceng.filteryou.data.model.FilterRule
 import dev.wceng.filteryou.data.model.InterceptedLog
 
-@Database(entities = [InterceptedLog::class, FilterRule::class], version = 1, exportSchema = false)
+@Database(entities = [InterceptedLog::class, FilterRule::class], version = 3, exportSchema = false)
 abstract class FilterYouDatabase : RoomDatabase() {
     abstract fun logDao(): LogDao
     abstract fun ruleDao(): RuleDao

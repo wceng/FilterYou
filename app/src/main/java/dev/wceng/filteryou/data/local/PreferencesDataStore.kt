@@ -17,21 +17,8 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 class PreferencesDataStore(private val context: Context) {
 
     private object PreferencesKeys {
-        val SMS_PROTECTION_ENABLED = booleanPreferencesKey("sms_protection_enabled")
         val CALL_PROTECTION_ENABLED = booleanPreferencesKey("call_protection_enabled")
     }
-
-    val smsProtectionEnabled: Flow<Boolean> = context.dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }
-        .map { preferences ->
-            preferences[PreferencesKeys.SMS_PROTECTION_ENABLED] ?: true
-        }
 
     val callProtectionEnabled: Flow<Boolean> = context.dataStore.data
         .catch { exception ->
@@ -44,12 +31,6 @@ class PreferencesDataStore(private val context: Context) {
         .map { preferences ->
             preferences[PreferencesKeys.CALL_PROTECTION_ENABLED] ?: true
         }
-
-    suspend fun updateSmsProtection(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.SMS_PROTECTION_ENABLED] = enabled
-        }
-    }
 
     suspend fun updateCallProtection(enabled: Boolean) {
         context.dataStore.edit { preferences ->

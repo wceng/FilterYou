@@ -2,6 +2,7 @@ package dev.wceng.filteryou.ui.screen.logs
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.wceng.filteryou.data.model.InterceptedLog
 import dev.wceng.filteryou.data.repository.FilterRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,13 +11,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class LogsUiState(
     val logs: List<InterceptedLog> = emptyList(),
     val searchQuery: String = ""
 )
 
-class LogsViewModel(
+@HiltViewModel
+class LogsViewModel @Inject constructor(
     private val filterRepository: FilterRepository
 ) : ViewModel() {
 
@@ -29,9 +32,8 @@ class LogsViewModel(
         val filteredLogs = if (query.isBlank()) {
             logs
         } else {
-            logs.filter { 
-                it.sender.contains(query, ignoreCase = true) || 
-                it.body?.contains(query, ignoreCase = true) == true ||
+            logs.filter {
+                it.sender.contains(query, ignoreCase = true) ||
                 it.reason.contains(query, ignoreCase = true)
             }
         }

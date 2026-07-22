@@ -1,5 +1,6 @@
 package dev.wceng.filteryou.ui.screen.logs
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,24 +11,46 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import dev.wceng.filteryou.data.model.InterceptedLog
 import dev.wceng.filteryou.ui.screen.dashboard.LogItem
+import dev.wceng.filteryou.ui.theme.FilterYouTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogsScreen(
     viewModel: LogsViewModel,
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LogsScreenContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack,
+        onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
+        onDeleteLog = { viewModel.deleteLog(it) },
+        onClearAllLogs = { viewModel.clearAllLogs() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LogsScreenContent(
+    uiState: LogsUiState,
+    onNavigateBack: () -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onDeleteLog: (InterceptedLog) -> Unit,
+    onClearAllLogs: () -> Unit
+) {
     var showDeleteAllDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Intercepted Logs") },
+                title = { Text("Interception Logs", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
@@ -48,25 +71,34 @@ fun LogsScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            SearchBar(
-                query = uiState.searchQuery,
-                onQueryChange = { viewModel.onSearchQueryChange(it) },
-                onSearch = {},
-                active = false,
-                onActiveChange = {},
-                placeholder = { Text("Search sender or content") },
-                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
-                trailingIcon = {
-                    if (uiState.searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
-                            Icon(Icons.Rounded.Clear, contentDescription = "Clear")
-                        }
-                    }
-                },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-            ) {}
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+            ) {
+                OutlinedTextField(
+                    value = uiState.searchQuery,
+                    onValueChange = onSearchQueryChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Search number or reason") },
+                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (uiState.searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { onSearchQueryChange("") }) {
+                                Icon(Icons.Rounded.Close, contentDescription = "Clear")
+                            }
+                        }
+                    },
+                    shape = MaterialTheme.shapes.extraLarge,
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    )
+                )
+            }
 
             if (uiState.logs.isEmpty()) {
                 Box(
@@ -77,25 +109,27 @@ fun LogsScreen(
                         Icon(
                             imageVector = Icons.Rounded.Inbox,
                             contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.outline
+                            modifier = Modifier.size(80.dp),
+                            tint = MaterialTheme.colorScheme.outlineVariant
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = if (uiState.searchQuery.isEmpty()) "No logs found" else "No matches found",
-                            style = MaterialTheme.typography.bodyLarge
+                            text = if (uiState.searchQuery.isEmpty()) "No history found" else "No matches found",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.outline
                         )
                     }
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(uiState.logs, key = { it.id }) { log ->
                         SwipeToDismissLogItem(
                             log = log,
-                            onDismiss = { viewModel.deleteLog(log) }
+                            onDismiss = { onDeleteLog(log) }
                         )
                     }
                 }
@@ -106,23 +140,25 @@ fun LogsScreen(
     if (showDeleteAllDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteAllDialog = false },
-            title = { Text("Clear All Logs") },
-            text = { Text("Are you sure you want to permanently delete all intercepted logs?") },
+            title = { Text("Clear All History?") },
+            text = { Text("This will permanently remove all intercepted logs. This action cannot be undone.") },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
-                        viewModel.clearAllLogs()
+                        onClearAllLogs()
                         showDeleteAllDialog = false
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Clear All", color = MaterialTheme.colorScheme.error)
+                    Text("Clear All")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteAllDialog = false }) {
                     Text("Cancel")
                 }
-            }
+            },
+            shape = MaterialTheme.shapes.extraLarge
         )
     }
 }
@@ -133,13 +169,16 @@ fun SwipeToDismissLogItem(
     log: InterceptedLog,
     onDismiss: () -> Unit
 ) {
-    val dismissState = rememberSwipeToDismissBoxState()
-    
-    LaunchedEffect(dismissState.currentValue) {
-        if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-            onDismiss()
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            if (it == SwipeToDismissBoxValue.EndToStart) {
+                onDismiss()
+                false
+            } else {
+                false
+            }
         }
-    }
+    )
 
     SwipeToDismissBox(
         state = dismissState,
@@ -147,22 +186,60 @@ fun SwipeToDismissLogItem(
         backgroundContent = {
             val color = when (dismissState.dismissDirection) {
                 SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
-                else -> androidx.compose.ui.graphics.Color.Transparent
+                else -> Color.Transparent
             }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp),
+                    .padding(horizontal = 20.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(color),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Icon(
-                    Icons.Rounded.Delete,
+                    Icons.Rounded.DeleteOutline,
                     contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(end = 16.dp)
                 )
             }
         }
     ) {
         LogItem(log)
+    }
+}
+
+@Preview(showBackground = true, name = "Logs List - Light")
+@Preview(showBackground = true, name = "Logs List - Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun LogsScreenPreview() {
+    val mockLogs = listOf(
+        InterceptedLog(id = 1, sender = "10086", reason = "Matched rule: Ad", timestamp = System.currentTimeMillis()),
+        InterceptedLog(id = 2, sender = "4001234567", reason = "Matched rule: Spam", timestamp = System.currentTimeMillis() - 3600000),
+        InterceptedLog(id = 3, sender = "+852 9876 5432", reason = "Matched rule: Overseas", timestamp = System.currentTimeMillis() - 7200000)
+    )
+
+    FilterYouTheme {
+        LogsScreenContent(
+            uiState = LogsUiState(logs = mockLogs),
+            onNavigateBack = {},
+            onSearchQueryChange = {},
+            onDeleteLog = {},
+            onClearAllLogs = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Empty Logs")
+@Composable
+fun LogsScreenEmptyPreview() {
+    FilterYouTheme {
+        LogsScreenContent(
+            uiState = LogsUiState(logs = emptyList()),
+            onNavigateBack = {},
+            onSearchQueryChange = {},
+            onDeleteLog = {},
+            onClearAllLogs = {}
+        )
     }
 }

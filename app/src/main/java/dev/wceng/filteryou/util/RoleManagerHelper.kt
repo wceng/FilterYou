@@ -35,8 +35,6 @@ class RoleManagerHelper(private val context: Context) {
 
     companion object {
         @RequiresApi(Build.VERSION_CODES.Q)
-        const val ROLE_SMS = RoleManager.ROLE_SMS
-        @RequiresApi(Build.VERSION_CODES.Q)
         const val ROLE_CALL_SCREENING = RoleManager.ROLE_CALL_SCREENING
     }
 }

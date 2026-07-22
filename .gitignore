@@ -13,3 +13,10 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# IDE and temporary files
+.idea/
+.artifacts/
+.kotlin/
+.agent/
+.claude/

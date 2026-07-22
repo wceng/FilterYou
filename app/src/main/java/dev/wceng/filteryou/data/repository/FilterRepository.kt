@@ -5,8 +5,11 @@ import dev.wceng.filteryou.data.local.dao.RuleDao
 import dev.wceng.filteryou.data.model.FilterRule
 import dev.wceng.filteryou.data.model.InterceptedLog
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class FilterRepository(
+@Singleton
+class FilterRepository @Inject constructor(
     private val logDao: LogDao,
     private val ruleDao: RuleDao
 ) {
